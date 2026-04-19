@@ -1,0 +1,124 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TabControl Controle de Tablets</title>
+    
+    <!-- Font Awesome 6 (ícones profissionais) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/foto-components.css') }}">
+    <link rel="manifest" href="/manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Topbar -->
+        <!-- templates/index.html - Substitua a topbar -->
+<div class="topbar">
+    <div class="brand">
+        <i class="fas fa-tablet-alt"></i> CONTROLE DE TABLETS
+    </div>
+    <div class="links">
+        <a href="/"><i class="fas fa-chart-pie"></i> Dashboard</a>
+        <a href="/cadastro"><i class="fas fa-plus-circle"></i> Novo Tablet</a>
+        <a href="/historico"><i class="fas fa-history"></i> Histórico</a>
+        <!-- NOVO: Link Admin (visível apenas para admin) -->
+        <a href="/admin" id="admin-link" style="display: none; background: rgba(106,0,255,0.2);">
+            <i class="fas fa-crown"></i> Admin
+        </a>
+        <a href="/logout"><i class="fas fa-sign-out-alt"></i> Sair</a>
+        <a href="#" onclick="fetchTablets()"><i class="fas fa-sync-alt"></i> Atualizar</a>
+    </div>
+</div>
+
+        <div class="container">
+            <!-- Título com efeito -->
+            <h1>
+                <i class="fas fa-cpu"></i> PAINEL DE CONTROLE
+            </h1>
+
+            <!-- Estatísticas -->
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-value" id="total-tablets">0</div>
+                    <div class="stat-label">
+                        <i class="fas fa-layer-group"></i> TOTAL DE TABLETS
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: var(--neon-verde);" id="disponiveis-tablets">0</div>
+                    <div class="stat-label">
+                        <i class="fas fa-check-circle"></i> DISPONÍVEIS
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: var(--neon-vermelho);" id="em-uso-tablets">0</div>
+                    <div class="stat-label">
+                        <i class="fas fa-clock"></i> EM USO
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtros -->
+            <div class="filtros">
+                <div>
+                    <label><i class="fas fa-filter"></i> Filtrar por status</label>
+                    <select id="filtro-status" class="btn btn-roxo" style="height: 42px; min-width: 180px;">
+                        <option value="todos"><i class="fas fa-globe"></i> Todos</option>
+                        <option value="disponivel"><i class="fas fa-check"></i> Disponíveis</option>
+                        <option value="em_uso"><i class="fas fa-hourglass-half"></i> Em Uso</option>
+                    </select>
+                </div>
+                <div>
+                    <label><i class="fas fa-search"></i> Buscar tablet</label>
+                    <input type="text" id="busca" placeholder="Nº ou modelo..." style="width: 200px; height: 42px;">
+                </div>
+            </div>
+
+            <!-- Grid de Tablets -->
+            <div id="tablets-grid" class="grid">
+                <!-- Cards serão inseridos via JavaScript -->
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+                <i class="fas fa-tablet-alt"></i> TabControl Pro • Desenvolvido por Breno Vinicius
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalhes/Ações -->
+    <div id="modal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <span id="modal-title">Tablet</span>
+                <span class="close" onclick="closeModal()"><i class="fas fa-times"></i></span>
+            </div>
+            <div id="modal-body" class="modal-body">
+                <!-- Conteúdo dinâmico será inserido aqui -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Visualização de Foto -->
+    <div id="foto-modal" class="modal">
+    <div class="modal-content foto-modal-content">
+        <div class="modal-header">
+            <span>Visualizar Foto</span>
+            <span class="close" onclick="closeFotoModal()"><i class="fas fa-times"></i></span>
+        </div>
+        <div class="modal-body" style="text-align: center; padding: 20px;">
+            <img id="foto-modal-img" src="" alt="Foto" style="max-width: 100%; max-height: 70vh; border-radius: 8px;">
+        </div>
+    </div>
+</div>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/foto-upload.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,629 @@
+<!-- templates/historico.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TabControl - Histórico Completo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/foto-components.css') }}">
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="topbar">
+            <div class="brand"><i class="fas fa-tablet-alt"></i> TTOTAL DE TABLETS</div>
+            <div class="links">
+                <a href="/"><i class="fas fa-chart-pie"></i> Dashboard</a>
+                <a href="/cadastro"><i class="fas fa-plus-circle"></i> Novo Tablet</a>
+                <a href="/historico"><i class="fas fa-history"></i> Histórico</a>
+                <a href="#" onclick="carregarHistorico()"><i class="fas fa-sync-alt"></i> Atualizar</a>
+            </div>
+        </div>
+
+        <div class="container">
+            <h1><i class="fas fa-history"></i> HISTÓRICO COMPLETO</h1>
+            
+            <!-- Filtros -->
+            <div class="filtros">
+                <div>
+                    <label><i class="fas fa-filter"></i> Status</label>
+                    <select id="filtro-status" style="height: 42px;">
+                        <option value="todos">📋 Todos</option>
+                        <option value="retirados">📤 Em uso</option>
+                        <option value="devolvidos">📥 Devolvidos</option>
+                    </select>
+                </div>
+                <div>
+                    <label><i class="fas fa-search"></i> Buscar</label>
+                    <input type="text" id="busca" placeholder="Usuário ou tablet..." style="width: 250px;">
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="carregarHistorico()" style="height: 42px;">
+                        <i class="fas fa-search"></i> Filtrar
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Estatísticas rápidas -->
+            <div class="stats-container" style="margin-bottom: 24px;">
+                <div class="stat-card">
+                    <div class="stat-value" id="total-registros">0</div>
+                    <div class="stat-label"><i class="fas fa-database"></i> Total de registros</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: var(--neon-verde);" id="total-retiradas">0</div>
+                    <div class="stat-label"><i class="fas fa-arrow-right"></i> Retiradas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: var(--neon-azul);" id="total-devolucoes">0</div>
+                    <div class="stat-label"><i class="fas fa-arrow-left"></i> Devoluções</div>
+                </div>
+            </div>
+            
+            <!-- Checklist Stats -->
+            <div class="stats-container" style="margin-bottom: 24px;">
+                <div class="stat-card">
+                    <div class="stat-label"><i class="fas fa-check-circle"></i> Checklist Retirada</div>
+                    <div style="margin-top: 10px;">
+                        <div><i class="fas fa-check"></i> Estado OK: <span id="checklist-estado-ok">0</span></div>
+                        <div><i class="fas fa-wifi"></i> Rede OK: <span id="checklist-rede-ok">0</span></div>
+                        <div><i class="fas fa-battery-full"></i> Carga OK: <span id="checklist-carga-ok">0</span></div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label"><i class="fas fa-clipboard-check"></i> Checklist Devolução</div>
+                    <div style="margin-top: 10px;">
+                        <div><i class="fas fa-check-circle" style="color: var(--neon-verde);"></i> Devoluções OK: <span id="devolucoes-ok">0</span></div>
+                        <div><i class="fas fa-exclamation-triangle" style="color: var(--neon-vermelho);"></i> Com Avaria: <span id="devolucoes-avaria">0</span></div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label"><i class="fas fa-camera"></i> Fotos</div>
+                    <div style="margin-top: 10px;">
+                        <div><i class="fas fa-camera"></i> Retirada: <span id="fotos-retirada">0</span></div>
+                        <div><i class="fas fa-camera-retro"></i> Devolução: <span id="fotos-devolucao">0</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tabela de Histórico -->
+            <div class="card" style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-hashtag"></i> Tablet</th>
+                            <th><i class="fas fa-microchip"></i> Modelo</th>
+                            <th><i class="fas fa-user"></i> Usuário</th>
+                            <th><i class="fas fa-key"></i> Liberado por</th>
+                            <th><i class="fas fa-calendar-alt"></i> Retirada</th>
+                            <th><i class="fas fa-calendar-alt"></i> Devolução</th>
+                            <th><i class="fas fa-clock"></i> Tempo</th>
+                            <th><i class="fas fa-clipboard-list"></i> Checklist</th>
+                            <th><i class="fas fa-camera"></i> Fotos</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historico-tbody">
+                        <tr><td colspan="9" style="text-align: center;">Carregando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Paginação -->
+            <div class="pagination" style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
+                <button id="btn-anterior" class="btn btn-roxo ghost" onclick="mudarPagina(-1)"><i class="fas fa-chevron-left"></i> Anterior</button>
+                <span id="pagina-info" style="padding: 8px 16px; background: var(--card); border-radius: 12px;">Página 1</span>
+                <button id="btn-proxima" class="btn btn-roxo ghost" onclick="mudarPagina(1)">Próxima <i class="fas fa-chevron-right"></i></button>
+            </div>
+            
+            <div class="footer">
+                <i class="fas fa-tablet-alt"></i> TabControl Pro • Histórico Completo • v3.0
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Visualização de Foto com Carrossel -->
+    <div id="foto-modal" class="modal">
+        <div class="modal-content foto-modal-content">
+            <div class="modal-header">
+                <span id="foto-modal-title">Visualizar Foto</span>
+                <span class="close" onclick="closeFotoModal()"><i class="fas fa-times"></i></span>
+            </div>
+            <div class="modal-body" style="position: relative; padding: 20px; text-align: center;">
+                <button class="carrossel-nav carrossel-prev" id="carrossel-prev" onclick="navegarCarrossel(-1)">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                
+                <div id="carrossel-container" style="position: relative; min-height: 300px;">
+                    <img id="foto-modal-img" src="" alt="Foto" style="max-width: 100%; max-height: 70vh; border-radius: 8px;">
+                </div>
+                
+                <button class="carrossel-nav carrossel-next" id="carrossel-next" onclick="navegarCarrossel(1)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                
+                <div id="carrossel-indicadores" class="carrossel-indicadores"></div>
+                <div id="carrossel-contador" class="carrossel-contador">1 / 5</div>
+                
+                <div id="foto-info-atual" class="foto-info-atual">
+                    <span class="foto-categoria-badge">📸 Geral</span>
+                    <span class="foto-data"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let paginaAtual = 1;
+        let totalPaginas = 1;
+        
+        // Estado do carrossel
+        let carrosselState = {
+            fotos: [],
+            indexAtual: 0,
+            touchStartX: 0,
+            touchEndX: 0
+        };
+
+        // Função para abrir carrossel com múltiplas fotos
+        function openFotoCarrossel(fotos, indexInicial = 0) {
+            if (!fotos || fotos.length === 0) return;
+            
+            carrosselState.fotos = fotos;
+            carrosselState.indexAtual = indexInicial;
+            
+            const modal = document.getElementById('foto-modal');
+            const img = document.getElementById('foto-modal-img');
+            const title = document.getElementById('foto-modal-title');
+            const contador = document.getElementById('carrossel-contador');
+            const indicadores = document.getElementById('carrossel-indicadores');
+            const infoAtual = document.getElementById('foto-info-atual');
+            
+            if (!modal || !img) return;
+            
+            if (title) {
+                title.innerHTML = `<i class="fas fa-images"></i> Visualizar Fotos (${fotos.length})`;
+            }
+            
+            atualizarImagemCarrossel(img, infoAtual, contador, indicadores);
+            
+            if (indicadores) {
+                indicadores.innerHTML = '';
+                fotos.forEach((foto, i) => {
+                    const indicador = document.createElement('span');
+                    indicador.className = `carrossel-indicador ${i === carrosselState.indexAtual ? 'ativo' : ''}`;
+                    indicador.onclick = () => navegarParaFoto(i);
+                    indicadores.appendChild(indicador);
+                });
+            }
+            
+            atualizarBotoesNavegacao();
+            
+            modal.style.display = 'block';
+            modal.style.animation = 'slideUp 0.3s ease';
+        }
+
+        function atualizarImagemCarrossel(img, infoAtual, contador, indicadores) {
+            const foto = carrosselState.fotos[carrosselState.indexAtual];
+            if (!foto) return;
+            
+            img.style.opacity = '0.5';
+            
+            const imgPath = foto.caminho || foto;
+            img.src = `/static/uploads/${imgPath}`;
+            img.alt = foto.categoria || 'Foto';
+            
+            img.onload = () => {
+                img.style.opacity = '1';
+            };
+            
+            if (infoAtual) {
+                const categoria = foto.categoria || 'Geral';
+                const icone = 
+                    categoria === 'avaria' ? '⚠️' :
+                    categoria === 'tela' ? '📱' :
+                    categoria === 'geral' ? '📸' : '📌';
+                
+                infoAtual.innerHTML = `<span class="foto-categoria-badge">${icone} ${categoria}</span>`;
+            }
+            
+            if (contador) {
+                contador.textContent = `${carrosselState.indexAtual + 1} / ${carrosselState.fotos.length}`;
+            }
+            
+            if (indicadores) {
+                const indicadoresList = indicadores.children;
+                for (let i = 0; i < indicadoresList.length; i++) {
+                    indicadoresList[i].classList.toggle('ativo', i === carrosselState.indexAtual);
+                }
+            }
+        }
+
+        function navegarParaFoto(index) {
+            if (index < 0 || index >= carrosselState.fotos.length) return;
+            
+            carrosselState.indexAtual = index;
+            
+            const img = document.getElementById('foto-modal-img');
+            const infoAtual = document.getElementById('foto-info-atual');
+            const contador = document.getElementById('carrossel-contador');
+            const indicadores = document.getElementById('carrossel-indicadores');
+            
+            atualizarImagemCarrossel(img, infoAtual, contador, indicadores);
+            atualizarBotoesNavegacao();
+        }
+
+        function navegarCarrossel(direcao) {
+            const novoIndex = carrosselState.indexAtual + direcao;
+            if (novoIndex >= 0 && novoIndex < carrosselState.fotos.length) {
+                navegarParaFoto(novoIndex);
+            }
+        }
+
+        function atualizarBotoesNavegacao() {
+            const btnPrev = document.getElementById('carrossel-prev');
+            const btnNext = document.getElementById('carrossel-next');
+            
+            if (btnPrev) btnPrev.disabled = carrosselState.indexAtual === 0;
+            if (btnNext) btnNext.disabled = carrosselState.indexAtual === carrosselState.fotos.length - 1;
+        }
+
+        function openFotoModal(imgSrc) {
+            const foto = {
+                caminho: imgSrc.replace('/static/uploads/', ''),
+                categoria: 'Geral'
+            };
+            openFotoCarrossel([foto], 0);
+        }
+
+        function abrirCarrosselHistorico(fotos, indexInicial = 0) {
+            if (!fotos || fotos.length === 0) return;
+            openFotoCarrossel(fotos, indexInicial);
+        }
+
+        function closeFotoModal() {
+            const modal = document.getElementById('foto-modal');
+            if (modal) {
+                modal.style.animation = 'fadeOut 0.2s ease';
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                    modal.style.animation = '';
+                    carrosselState.fotos = [];
+                    carrosselState.indexAtual = 0;
+                }, 200);
+            }
+        }
+        
+        async function carregarHistorico() {
+            const status = document.getElementById('filtro-status').value;
+            const busca = document.getElementById('busca').value;
+            
+            const response = await fetch(`/api/historico/completo?page=${paginaAtual}&status=${status}&busca=${encodeURIComponent(busca)}`);
+            const data = await response.json();
+            
+            totalPaginas = data.pages;
+            document.getElementById('pagina-info').textContent = `Página ${data.current_page} de ${data.pages}`;
+            document.getElementById('btn-anterior').disabled = data.current_page === 1;
+            document.getElementById('btn-proxima').disabled = data.current_page === data.pages;
+            
+            const tbody = document.getElementById('historico-tbody');
+            tbody.innerHTML = '';
+            
+            if (data.items.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 40px;"><i class="fas fa-inbox"></i> Nenhum registro encontrado</td></tr>';
+            } else {
+                data.items.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.style.borderBottom = '1px solid rgba(255,255,255,0.1)';
+                    
+                    const checklistRetirada = `
+                        <div style="font-size: 12px;">
+                            <span style="color: ${item.checklist_retirada.estado === 'sim' ? 'var(--neon-verde)' : 'var(--neon-vermelho)'}">
+                                <i class="fas ${item.checklist_retirada.estado === 'sim' ? 'fa-check' : 'fa-times'}"></i> Estado
+                            </span><br>
+                            <span style="color: ${item.checklist_retirada.rede === 'sim' ? 'var(--neon-verde)' : 'var(--neon-vermelho)'}">
+                                <i class="fas ${item.checklist_retirada.rede === 'sim' ? 'fa-check' : 'fa-times'}"></i> Rede
+                            </span><br>
+                            <span style="color: ${item.checklist_retirada.carga === 'sim' ? 'var(--neon-verde)' : 'var(--neon-vermelho)'}">
+                                <i class="fas ${item.checklist_retirada.carga === 'sim' ? 'fa-battery-full' : 'fa-battery-quarter'}"></i> Carga
+                            </span>
+                        </div>
+                    `;
+                    
+                    const checklistDevolucao = item.data_devolucao ? `
+                        <div style="font-size: 12px;">
+                            <span style="color: ${item.checklist_devolucao.estado === 'sim' ? 'var(--neon-verde)' : 'var(--neon-vermelho)'}">
+                                <i class="fas ${item.checklist_devolucao.estado === 'sim' ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i>
+                                ${item.checklist_devolucao.estado === 'sim' ? 'OK' : 'Com avaria'}
+                            </span>
+                        </div>
+                    ` : '<span style="color: var(--muted);"><i class="fas fa-hourglass-half"></i> Em uso</span>';
+                    
+                    const checklistCompleto = `
+                        <div>
+                            <strong style="font-size: 11px; color: var(--muted);">Retirada:</strong>
+                            ${checklistRetirada}
+                            ${item.data_devolucao ? `
+                                <strong style="font-size: 11px; color: var(--muted); margin-top: 5px; display: block;">Devolução:</strong>
+                                ${checklistDevolucao}
+                            ` : ''}
+                        </div>
+                    `;
+                    
+                    // FOTOS SEPARADAS POR TIPO
+                    const fotosRetirada = item.fotos ? item.fotos.filter(f => f.tipo === 'retirada') : [];
+                    const fotosDevolucao = item.fotos ? item.fotos.filter(f => f.tipo === 'devolucao') : [];
+                    const temFotoPrincipalRetirada = item.foto_retirada;
+                    const temFotoPrincipalDevolucao = item.foto_devolucao;
+
+                    let fotosHtml = '<div style="min-width: 180px;">';
+
+                    // RETIRADA
+                    if (fotosRetirada.length > 0 || temFotoPrincipalRetirada) {
+                        fotosHtml += `
+                            <div style="margin-bottom: 8px;">
+                                <strong style="font-size: 10px; color: var(--neon-verde); display: flex; align-items: center; gap: 4px;">
+                                    <i class="fas fa-sign-out-alt"></i> RETIRADA (${fotosRetirada.length || 1})
+                                </strong>
+                                <div class="fotos-carrossel" style="max-width: 250px;">
+                        `;
+                        
+                        if (fotosRetirada.length > 0) {
+                            fotosRetirada.forEach(foto => {
+                                const categoriaNome = foto.categoria || 'Geral';
+                                const iconeCategoria = 
+                                    categoriaNome === 'avaria' ? '⚠️' :
+                                    categoriaNome === 'tela' ? '📱' :
+                                    categoriaNome === 'geral' ? '📸' : '📌';
+                                
+                                fotosHtml += `
+                                    <div class="foto-item-historico" onclick="abrirCarrosselHistorico(${JSON.stringify(fotosRetirada).replace(/"/g, '&quot;')}, ${fotosRetirada.indexOf(foto)})" title="Retirada: ${categoriaNome}">
+                                        <img src="/static/uploads/${foto.caminho}" alt="Foto Retirada" class="foto-thumbnail-historico">
+                                        <span class="foto-label">${iconeCategoria}</span>
+                                    </div>
+                                `;
+                            });
+                        } else if (temFotoPrincipalRetirada) {
+                            fotosHtml += `
+                                <div class="foto-item-historico" onclick="openFotoModal('/static/uploads/${item.foto_retirada}')" title="Foto da Retirada">
+                                    <img src="/static/uploads/${item.foto_retirada}" alt="Foto Retirada" class="foto-thumbnail-historico">
+                                    <span class="foto-label">📸 Geral</span>
+                                </div>
+                            `;
+                        }
+                        
+                        fotosHtml += `</div></div>`;
+                    }
+
+                    // DEVOLUÇÃO
+                    if (item.data_devolucao && (fotosDevolucao.length > 0 || temFotoPrincipalDevolucao)) {
+                        fotosHtml += `
+                            <div style="margin-top: 8px;">
+                                <strong style="font-size: 10px; color: var(--neon-azul); display: flex; align-items: center; gap: 4px;">
+                                    <i class="fas fa-sign-in-alt"></i> DEVOLUÇÃO (${fotosDevolucao.length || 1})
+                                </strong>
+                                <div class="fotos-carrossel" style="max-width: 250px;">
+                        `;
+                        
+                        if (fotosDevolucao.length > 0) {
+                            fotosDevolucao.forEach(foto => {
+                                const categoriaNome = foto.categoria || 'Geral';
+                                const iconeCategoria = 
+                                    categoriaNome === 'avaria' ? '⚠️' :
+                                    categoriaNome === 'tela' ? '📱' :
+                                    categoriaNome === 'geral' ? '📸' : '📌';
+                                
+                                fotosHtml += `
+                                    <div class="foto-item-historico" onclick="abrirCarrosselHistorico(${JSON.stringify(fotosDevolucao).replace(/"/g, '&quot;')}, ${fotosDevolucao.indexOf(foto)})" title="Devolução: ${categoriaNome}">
+                                        <img src="/static/uploads/${foto.caminho}" alt="Foto Devolução" class="foto-thumbnail-historico">
+                                        <span class="foto-label">${iconeCategoria}</span>
+                                    </div>
+                                `;
+                            });
+                        } else if (temFotoPrincipalDevolucao) {
+                            fotosHtml += `
+                                <div class="foto-item-historico" onclick="openFotoModal('/static/uploads/${item.foto_devolucao}')" title="Foto da Devolução">
+                                    <img src="/static/uploads/${item.foto_devolucao}" alt="Foto Devolução" class="foto-thumbnail-historico">
+                                    <span class="foto-label">📸 Geral</span>
+                                </div>
+                            `;
+                        }
+                        
+                        fotosHtml += `</div></div>`;
+                    }
+
+                    // SEM FOTOS
+                    if (fotosRetirada.length === 0 && !temFotoPrincipalRetirada && 
+                        fotosDevolucao.length === 0 && !temFotoPrincipalDevolucao) {
+                        fotosHtml += `
+                            <span class="foto-badge" style="opacity: 0.5;">
+                                <i class="fas fa-camera"></i> Sem fotos
+                            </span>
+                        `;
+                    }
+
+                    fotosHtml += '</div>';
+                    
+                    row.innerHTML = `
+                        <td style="padding: 12px;">
+                            <strong>Tablet ${item.tablet_numero}</strong>
+                        </td>
+                        <td style="padding: 12px;">
+                            <span style="font-size: 12px; color: var(--muted);">${item.tablet_modelo || '—'}</span>
+                        </td>
+                        <td style="padding: 12px;">
+                            <i class="fas fa-user"></i> ${item.usuario}
+                        </td>
+                        <td style="padding: 12px;">
+                            <i class="fas fa-key"></i> ${item.liberado_por}
+                        </td>
+                        <td style="padding: 12px;">
+                            <i class="far fa-calendar-alt"></i> ${item.data_retirada}
+                        </td>
+                        <td style="padding: 12px;">
+                            ${item.data_devolucao ? `<i class="far fa-calendar-alt"></i> ${item.data_devolucao}` : '<span class="badge red">Em uso</span>'}
+                        </td>
+                        <td style="padding: 12px;">
+                            <i class="fas fa-clock"></i> ${item.tempo_uso}
+                        </td>
+                        <td style="padding: 12px;">
+                            ${checklistCompleto}
+                        </td>
+                        <td style="padding: 12px;">
+                            ${fotosHtml}
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+            
+            const statsResponse = await fetch('/api/estatisticas/detalhadas');
+            const stats = await statsResponse.json();
+            
+            document.getElementById('total-registros').textContent = data.total;
+            document.getElementById('total-retiradas').textContent = data.total;
+            document.getElementById('total-devolucoes').textContent = data.total - stats.em_uso;
+            document.getElementById('checklist-estado-ok').textContent = stats.checklist.retiradas_estado_ok || 0;
+            document.getElementById('checklist-rede-ok').textContent = stats.checklist.retiradas_rede_ok || 0;
+            document.getElementById('checklist-carga-ok').textContent = stats.checklist.retiradas_carga_ok || 0;
+            document.getElementById('devolucoes-ok').textContent = stats.checklist.devolucoes_ok || 0;
+            document.getElementById('devolucoes-avaria').textContent = stats.checklist.devolucoes_com_avaria || 0;
+            document.getElementById('fotos-retirada').textContent = stats.fotos?.total_retirada || 0;
+            document.getElementById('fotos-devolucao').textContent = stats.fotos?.total_devolucao || 0;
+        }
+        
+        function mudarPagina(delta) {
+            const novaPagina = paginaAtual + delta;
+            if (novaPagina >= 1 && novaPagina <= totalPaginas) {
+                paginaAtual = novaPagina;
+                carregarHistorico();
+            }
+        }
+        
+        document.getElementById('filtro-status').addEventListener('change', () => {
+            paginaAtual = 1;
+            carregarHistorico();
+        });
+        
+        let buscaTimeout;
+        document.getElementById('busca').addEventListener('input', () => {
+            clearTimeout(buscaTimeout);
+            buscaTimeout = setTimeout(() => {
+                paginaAtual = 1;
+                carregarHistorico();
+            }, 500);
+        });
+        
+        window.onclick = function(event) {
+            const fotoModal = document.getElementById('foto-modal');
+            if (event.target == fotoModal) {
+                closeFotoModal();
+            }
+        }
+        
+        carregarHistorico();
+    </script>
+    
+    <style>
+        table th {
+            text-align: left;
+            padding: 12px;
+            background: rgba(0,0,0,0.3);
+            color: var(--text);
+            font-weight: 600;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+        table td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            vertical-align: top;
+        }
+        table tr:hover {
+            background: rgba(106, 0, 255, 0.1);
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .badge.red {
+            background: rgba(255,59,88,0.15);
+            color: var(--neon-vermelho);
+        }
+        .badge.green {
+            background: rgba(0,255,136,0.15);
+            color: var(--neon-verde);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .foto-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: rgba(0, 217, 255, 0.1);
+            border-radius: 8px;
+            font-size: 11px;
+            color: var(--neon-azul);
+            border: 1px solid rgba(0, 217, 255, 0.2);
+        }
+        table td .fotos-carrossel {
+            min-width: 150px;
+            max-width: 300px;
+        }
+        table td:last-child {
+            min-width: 180px;
+            max-width: 350px;
+        }
+        .fotos-carrossel {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 4px 2px;
+            scrollbar-width: thin;
+        }
+        .fotos-carrossel::-webkit-scrollbar {
+            height: 3px;
+        }
+        .fotos-carrossel::-webkit-scrollbar-thumb {
+            background: var(--neon-azul);
+            border-radius: 3px;
+        }
+        .foto-thumbnail-historico {
+            width: 55px;
+            height: 55px;
+            border-radius: 6px;
+            object-fit: cover;
+            cursor: pointer;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
+        }
+        .foto-thumbnail-historico:hover {
+            transform: scale(1.05);
+            border-color: var(--neon-azul);
+        }
+        .foto-item-historico {
+            position: relative;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .foto-item-historico .foto-label {
+            position: absolute;
+            bottom: 4px;
+            left: 4px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 9px;
+            color: var(--text);
+            backdrop-filter: blur(4px);
+            white-space: nowrap;
+        }
+    </style>
+</body>
+</html>

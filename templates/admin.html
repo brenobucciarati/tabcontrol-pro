@@ -1,0 +1,689 @@
+<!-- templates/admin.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TabControl Pro - Painel Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+   <style>
+.admin-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.admin-header h1 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.admin-header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* 🔥 CORREÇÃO DEFINITIVA DOS BOTÕES */
+.admin-header-actions .btn,
+.card-header .btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    width: auto !important;
+    min-width: 0 !important;
+    flex: 0 0 auto !important;
+
+    padding: 6px 12px !important;
+    height: auto !important;
+
+    white-space: nowrap;
+}
+
+.admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.admin-card {
+    background: linear-gradient(145deg, var(--card-alt), var(--card));
+    border-radius: 20px;
+    padding: 24px;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+.admin-card h3 {
+    margin: 0 0 20px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--neon-azul);
+    font-size: 18px;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.card-header h3 {
+    margin: 0;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 15px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 12px;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--neon-verde);
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 5px;
+}
+
+.user-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.user-table th {
+    text-align: left;
+    padding: 12px;
+    background: rgba(0,0,0,0.3);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.user-table td {
+    padding: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.user-table tr:hover {
+    background: rgba(106,0,255,0.1);
+}
+
+.badge-admin {
+    background: var(--roxo);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.badge-operador {
+    background: rgba(0,217,255,0.2);
+    color: var(--neon-azul);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.badge-ativo {
+    color: var(--neon-verde);
+}
+
+.badge-inativo {
+    color: var(--neon-vermelho);
+}
+
+.btn-icon {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: var(--muted);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon:hover {
+    background: var(--roxo);
+    color: white;
+    border-color: var(--roxo);
+}
+
+.btn-sm {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    height: auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 22px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255,255,255,0.1);
+    transition: .3s;
+    border-radius: 22px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--neon-verde);
+}
+
+input:checked + .slider:before {
+    transform: translateX(22px);
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-wrapper input {
+    width: 100%;
+    padding: 12px 16px;
+    padding-right: 45px;
+    background: rgba(15, 15, 31, 0.8);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+}
+
+.input-wrapper input:focus {
+    border-color: var(--neon-azul);
+    box-shadow: 0 0 15px rgba(0,217,255,0.3);
+}
+
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.toggle-password:hover {
+    color: var(--neon-azul);
+}
+
+.form-col select {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(15, 15, 31, 0.8);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    cursor: pointer;
+}
+
+.form-col select:focus {
+    border-color: var(--neon-azul);
+}
+
+.form-col select option {
+    background: var(--card);
+}
+</style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="topbar">
+            <div class="brand">
+                <i class="fas fa-tablet-alt"></i> TABCONTROL PRO
+            </div>
+            <div class="links">
+                <a href="/"><i class="fas fa-chart-pie"></i> Dashboard</a>
+                <a href="/cadastro"><i class="fas fa-plus-circle"></i> Novo Tablet</a>
+                <a href="/historico"><i class="fas fa-history"></i> Histórico</a>
+                <a href="/admin" style="background: rgba(106,0,255,0.2);"><i class="fas fa-crown"></i> Admin</a>
+                <a href="/logout"><i class="fas fa-sign-out-alt"></i> Sair</a>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="admin-header">
+                <h1><i class="fas fa-crown" style="color: #FFD700;"></i> PAINEL DE ADMINISTRAÇÃO</h1>
+                <div class="admin-header-actions">
+                    <a href="/admin/logs" class="btn btn-roxo btn-sm">
+                        <i class="fas fa-history"></i> Ver Logs
+                    </a>
+                </div>
+            </div>
+            
+            <div class="admin-grid">
+                <div class="admin-card">
+                    <h3><i class="fas fa-users"></i> Usuários</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="total-usuarios">0</div>
+                            <div class="stat-label">Total</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="usuarios-ativos">0</div>
+                            <div class="stat-label">Ativos</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="total-admins">0</div>
+                            <div class="stat-label">Administradores</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="total-operadores">0</div>
+                            <div class="stat-label">Operadores</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="admin-card">
+                    <h3><i class="fas fa-chart-bar"></i> Sistema</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="total-tablets-stats">0</div>
+                            <div class="stat-label">Tablets</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="total-retiradas-stats">0</div>
+                            <div class="stat-label">Retiradas</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="total-fotos-stats">0</div>
+                            <div class="stat-label">Fotos</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="logs-hoje">0</div>
+                            <div class="stat-label">Logs Hoje</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="admin-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-user-shield"></i> Gerenciar Usuários</h3>
+                    <button class="btn btn-roxo btn-sm" onclick="abrirModalNovoUsuario()">
+                        <i class="fas fa-user-plus"></i> Novo Usuário
+                    </button>
+                </div>
+                
+                <div style="overflow-x: auto;">
+                    <table class="user-table">
+                        <thead>
+                            <tr>
+                                <th>Usuário</th>
+                                <th>Email</th>
+                                <th>Cargo</th>
+                                <th>Status</th>
+                                <th>Último Login</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usuarios-tbody">
+                            <tr><td colspan="6" style="text-align: center;">Carregando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Usuário -->
+    <div id="usuario-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="modal-titulo">Novo Usuário</span>
+                <span class="close" onclick="closeUsuarioModal()"><i class="fas fa-times"></i></span>
+            </div>
+            <div class="modal-body">
+                <form id="usuario-form" onsubmit="return false;">
+                    <input type="hidden" id="usuario-id">
+                    
+                    <div class="form-col">
+                        <div>
+                            <label><i class="fas fa-user"></i> Nome Completo</label>
+                            <input type="text" id="usuario-nome" placeholder="Nome do usuário" required>
+                        </div>
+                        
+                        <div>
+                            <label><i class="fas fa-envelope"></i> Email</label>
+                            <input type="text" id="usuario-email" placeholder="usuario" required>
+                            <small style="color: var(--neon-azul); font-size: 11px; display: block; margin-top: 4px;">
+                                <i class="fas fa-info-circle"></i> @tabcontrol.com será adicionado
+                            </small>
+                        </div>
+                        
+                        <div>
+                            <label><i class="fas fa-lock"></i> Senha</label>
+                            <div class="input-wrapper">
+                                <input type="password" id="usuario-senha" placeholder="******">
+                                <span class="toggle-password" onclick="toggleSenhaModal()">
+                                    <i class="fas fa-eye" id="toggle-modal-icon"></i>
+                                </span>
+                            </div>
+                            <small style="color: var(--muted); font-size: 11px; display: block; margin-top: 4px;" id="senha-hint">
+                                Mínimo 6 caracteres
+                            </small>
+                        </div>
+                        
+                        <div>
+                            <label><i class="fas fa-user-tag"></i> Cargo</label>
+                            <select id="usuario-cargo">
+                                <option value="operador">Operador</option>
+                                <option value="admin">Administrador</option>
+                            </select>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+                            <label class="switch">
+                                <input type="checkbox" id="usuario-ativo" checked>
+                                <span class="slider"></span>
+                            </label>
+                            <span style="color: var(--muted);">Usuário Ativo</span>
+                        </div>
+                    </div>
+                </form>
+                
+                <div class="modal-actions">
+                    <button class="btn btn-vermelho btn-sm" onclick="closeUsuarioModal()">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button class="btn btn-verde btn-sm" onclick="salvarUsuario()">
+                        <i class="fas fa-save"></i> Salvar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let usuarios = [];
+        const modal = document.getElementById('usuario-modal');
+        
+        function toggleSenhaModal() {
+            const input = document.getElementById('usuario-senha');
+            const icon = document.getElementById('toggle-modal-icon');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+        
+        async function carregarUsuarios() {
+            try {
+                const response = await fetch('/api/usuarios');
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
+                usuarios = await response.json();
+                renderizarUsuarios();
+                atualizarEstatisticas();
+            } catch (error) {
+                console.error('Erro ao carregar usuários:', error);
+            }
+        }
+        
+        async function carregarStats() {
+            try {
+                const tabletsRes = await fetch('/api/tablets');
+                const tablets = await tabletsRes.json();
+                
+                const statsRes = await fetch('/api/estatisticas/detalhadas');
+                const stats = await statsRes.json();
+                
+                document.getElementById('total-tablets-stats').textContent = tablets.length;
+                document.getElementById('total-retiradas-stats').textContent = stats.em_uso || 0;
+                document.getElementById('total-fotos-stats').textContent = (stats.fotos?.total_retirada || 0) + (stats.fotos?.total_devolucao || 0);
+            } catch (error) {
+                console.error('Erro ao carregar estatísticas:', error);
+            }
+        }
+        
+        function atualizarEstatisticas() {
+            const total = usuarios.length;
+            const ativos = usuarios.filter(u => u.ativo).length;
+            const admins = usuarios.filter(u => u.cargo === 'admin').length;
+            const operadores = usuarios.filter(u => u.cargo === 'operador').length;
+            
+            document.getElementById('total-usuarios').textContent = total;
+            document.getElementById('usuarios-ativos').textContent = ativos;
+            document.getElementById('total-admins').textContent = admins;
+            document.getElementById('total-operadores').textContent = operadores;
+        }
+        
+        function renderizarUsuarios() {
+            const tbody = document.getElementById('usuarios-tbody');
+            
+            if (usuarios.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum usuário cadastrado</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = '';
+            
+            usuarios.forEach(usuario => {
+                const row = document.createElement('tr');
+                
+                const cargoBadge = usuario.cargo === 'admin' 
+                    ? '<span class="badge-admin"><i class="fas fa-crown"></i> Admin</span>'
+                    : '<span class="badge-operador"><i class="fas fa-user"></i> Operador</span>';
+                
+                const statusBadge = usuario.ativo
+                    ? '<span class="badge-ativo"><i class="fas fa-check-circle"></i> Ativo</span>'
+                    : '<span class="badge-inativo"><i class="fas fa-times-circle"></i> Inativo</span>';
+                
+                row.innerHTML = `
+                    <td>
+                        <strong>${usuario.nome}</strong><br>
+                        <small style="color: var(--muted);">ID: ${usuario.id}</small>
+                    </td>
+                    <td>${usuario.email}</td>
+                    <td>${cargoBadge}</td>
+                    <td>${statusBadge}</td>
+                    <td style="font-size: 12px;">${usuario.ultimo_login || 'Nunca'}</td>
+                    <td>
+                        <button class="btn-icon" onclick="editarUsuario(${usuario.id})" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-icon" onclick="toggleUsuario(${usuario.id})" title="${usuario.ativo ? 'Desativar' : 'Ativar'}">
+                            <i class="fas fa-${usuario.ativo ? 'ban' : 'check'}"></i>
+                        </button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        function abrirModalNovoUsuario() {
+            document.getElementById('modal-titulo').innerHTML = '<i class="fas fa-user-plus"></i> Novo Usuário';
+            document.getElementById('usuario-id').value = '';
+            document.getElementById('usuario-nome').value = '';
+            document.getElementById('usuario-email').value = '';
+            document.getElementById('usuario-senha').value = '';
+            document.getElementById('usuario-senha').required = true;
+            document.getElementById('senha-hint').style.display = 'block';
+            document.getElementById('usuario-cargo').value = 'operador';
+            document.getElementById('usuario-ativo').checked = true;
+            modal.style.display = 'block';
+        }
+        
+        function editarUsuario(id) {
+            const usuario = usuarios.find(u => u.id === id);
+            if (!usuario) return;
+            
+            const emailSemDominio = usuario.email.replace('@tabcontrol.com', '');
+            
+            document.getElementById('modal-titulo').innerHTML = '<i class="fas fa-user-edit"></i> Editar Usuário';
+            document.getElementById('usuario-id').value = usuario.id;
+            document.getElementById('usuario-nome').value = usuario.nome;
+            document.getElementById('usuario-email').value = emailSemDominio;
+            document.getElementById('usuario-senha').value = '';
+            document.getElementById('usuario-senha').required = false;
+            document.getElementById('senha-hint').style.display = 'none';
+            document.getElementById('usuario-cargo').value = usuario.cargo;
+            document.getElementById('usuario-ativo').checked = usuario.ativo;
+            modal.style.display = 'block';
+        }
+        
+        function closeUsuarioModal() {
+            modal.style.display = 'none';
+        }
+        
+        async function salvarUsuario() {
+            const id = document.getElementById('usuario-id').value;
+            const nome = document.getElementById('usuario-nome').value;
+            let email = document.getElementById('usuario-email').value.trim();
+            const senha = document.getElementById('usuario-senha').value;
+            const cargo = document.getElementById('usuario-cargo').value;
+            const ativo = document.getElementById('usuario-ativo').checked;
+            
+            if (!nome || !email) {
+                alert('Preencha todos os campos!');
+                return;
+            }
+            
+            if (!email.includes('@')) {
+                email = email + '@tabcontrol.com';
+            }
+            
+            if (!id && !senha) {
+                alert('A senha é obrigatória!');
+                return;
+            }
+            
+            if (senha && senha.length < 6) {
+                alert('A senha deve ter pelo menos 6 caracteres!');
+                return;
+            }
+            
+            const data = { nome, email, cargo, ativo };
+            if (senha) data.senha = senha;
+            
+            try {
+                const url = id ? `/api/usuarios/${id}` : '/api/usuarios';
+                const method = id ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    closeUsuarioModal();
+                    carregarUsuarios();
+                    alert(id ? 'Usuário atualizado!' : 'Usuário criado!');
+                } else {
+                    const error = await response.json();
+                    alert(error.error || 'Erro ao salvar');
+                }
+            } catch (error) {
+                alert('Erro ao salvar usuário');
+            }
+        }
+        
+        async function toggleUsuario(id) {
+            const usuario = usuarios.find(u => u.id === id);
+            if (!usuario) return;
+            
+            if (confirm(`Deseja ${usuario.ativo ? 'desativar' : 'ativar'} este usuário?`)) {
+                try {
+                    const response = await fetch(`/api/usuarios/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ativo: !usuario.ativo })
+                    });
+                    
+                    if (response.ok) {
+                        carregarUsuarios();
+                    }
+                } catch (error) {
+                    alert('Erro ao alterar status');
+                }
+            }
+        }
+        
+        window.onclick = (event) => {
+            if (event.target === modal) {
+                closeUsuarioModal();
+            }
+        };
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            carregarUsuarios();
+            carregarStats();
+        });
+    </script>
+</body>
+</html>

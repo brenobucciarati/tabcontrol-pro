@@ -1,0 +1,115 @@
+<!-- templates/cadastro.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TabControl - Cadastro Neon</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="topbar">
+            <div class="brand"><i class="fas fa-tablet-alt"></i> TOTAL DE TABLETS</div>
+            <div class="links">
+                <a href="/"><i class="fas fa-chart-pie"></i> Dashboard</a>
+                <a href="/cadastro"><i class="fas fa-plus-circle"></i> Novo Tablet</a>
+            </div>
+        </div>
+
+        <div class="container">
+            <h1><i class="fas fa-plus-circle"></i> CADASTRAR NOVO TABLET</h1>
+            
+            <div class="card" style="max-width: 600px; margin: 0 auto;">
+                <form id="cadastro-form" enctype="multipart/form-data">
+                    <div class="form-col">
+                        <div>
+                            <label><i class="fas fa-hashtag"></i> Número do Tablet</label>
+                            <input type="text" id="numero" name="numero" placeholder="Ex: 27" required style="width: 100%;">
+                        </div>
+                        
+                        <div>
+                            <label><i class="fas fa-microchip"></i> Modelo</label>
+                            <select id="modelo" name="modelo" style="width: 100%; padding: 12px; background: #0f0f1f; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; color: var(--text);">
+                                <option value="Samsung Tab A9">Samsung Tab A9</option>
+                                <option value="Samsung Tab A9+">Samsung Tab A9+</option>
+                                <option value="Lenovo Tab">Lenovo Tab</option>
+                                <option value="iPad Pro M2">iPad Pro M2</option>
+                                <option value="Outro">Outro</option>
+                            </select>
+                        </div>
+                        
+                        <div id="outro-modelo-container" style="display: none;">
+                            <label><i class="fas fa-pencil-alt"></i> Especifique o modelo</label>
+                            <input type="text" id="outro-modelo" placeholder="Digite o modelo" style="width: 100%;">
+                        </div>
+                        
+                        <div>
+                            <label><i class="fas fa-palette"></i> Cor</label>
+                            <select id="cor" name="cor" style="width: 100%; padding: 12px; background: #0f0f1f; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; color: var(--text);">
+                                <option value="#4158D0"><i class="fas fa-circle" style="color: #4158D0;"></i> Azul</option>
+                                <option value="#C850C0"><i class="fas fa-circle" style="color: #C850C0;"></i> Roxo</option>
+                                <option value="#FFCC70"><i class="fas fa-circle" style="color: #FFCC70;"></i> Laranja</option>
+                                <option value="#00ff88"><i class="fas fa-circle" style="color: #00ff88;"></i> Verde Neon</option>
+                                <option value="#ff3b58"><i class="fas fa-circle" style="color: #ff3b58;"></i> Vermelho</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label><i class="fas fa-image"></i> Imagem do Tablet</label>
+                            <input type="file" id="imagem" name="imagem" accept="image/*" style="width: 100%; padding: 12px; background: #0f0f1f; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; color: var(--text);">
+                            <small style="color: var(--muted);"><i class="fas fa-info-circle"></i> Formatos: PNG, JPG (max: 16MB)</small>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-start" style="width: 100%; font-size: 1.1em; padding: 15px;">
+                            <i class="fas fa-save"></i> SALVAR TABLET
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('modelo').addEventListener('change', function() {
+            const container = document.getElementById('outro-modelo-container');
+            container.style.display = this.value === 'Outro' ? 'block' : 'none';
+        });
+        
+        document.getElementById('cadastro-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('numero', document.getElementById('numero').value);
+            
+            let modelo = document.getElementById('modelo').value;
+            if (modelo === 'Outro') {
+                modelo = document.getElementById('outro-modelo').value;
+                if (!modelo) {
+                    alert('Digite o modelo do tablet');
+                    return;
+                }
+            }
+            formData.append('modelo', modelo);
+            formData.append('cor', document.getElementById('cor').value);
+            
+            const imagem = document.getElementById('imagem').files[0];
+            if (imagem) formData.append('imagem', imagem);
+            
+            try {
+                const response = await fetch('/api/tablets', { method: 'POST', body: formData });
+                if (response.ok) {
+                    alert('✅ Tablet cadastrado com sucesso!');
+                    window.location.href = '/';
+                } else {
+                    const error = await response.json();
+                    alert('❌ ' + (error.error || 'Erro ao cadastrar'));
+                }
+            } catch (error) {
+                alert('❌ Erro ao cadastrar tablet');
+            }
+        });
+    </script>
+</body>
+</html>
