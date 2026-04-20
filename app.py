@@ -260,6 +260,12 @@ with app.app_context():
         print("   - Tablets 04-05: Samsung Tab A9+")
         print("   - Tablets 06-40: Lenovo Tab")
 
+# app.py - Adicione esta rota
+
+@app.route('/offline')
+def offline_page():
+    """Página offline para quando o servidor estiver fora do ar"""
+    return render_template('offline.html')
 
 # ==================== ROTAS DE AUTENTICAÇÃO ====================
 
