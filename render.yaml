@@ -2,11 +2,8 @@ services:
   - type: web
     name: tabcontrol-pro
     env: python
-    buildCommand: |
-      apt-get update
-      apt-get install -y libjpeg-dev zlib1g-dev libfreetype6-dev liblcms2-dev libopenjp2-7-dev libtiff5-dev libharfbuzz-dev libfribidi-dev
-      pip install --upgrade pip
-      pip install -r requirements.txt
+    runtime: python311
+    buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 120
     envVars:
       - key: PYTHON_VERSION
