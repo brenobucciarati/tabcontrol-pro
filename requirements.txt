@@ -1,21 +1,6 @@
-# requirements.txt - TabControl Pro
-# Sistema de Gerenciamento de Tablets
-
-# Framework Web
 Flask==2.3.3
 Flask-CORS==4.0.0
 Flask-SQLAlchemy==3.0.5
-
-# Manipulação de Imagens
 Pillow==10.0.0
-
-# Processamento de Arquivos
 Werkzeug==2.3.7
-
-# Banco de Dados (já incluso no Flask-SQLAlchemy)
-# SQLAlchemy==2.0.20
-
-# Utilitários
-python-dotenv==1.0.0
-
 gunicorn==21.2.0
