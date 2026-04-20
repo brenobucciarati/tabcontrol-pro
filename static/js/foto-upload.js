@@ -783,7 +783,7 @@ function handleKeyDown(e) {
     }
 }
 
-export function closeFotoModal() {
+function closeFotoModal() {
     const modal = document.getElementById('foto-modal');
     if (modal) {
         modal.style.animation = 'fadeOut 0.2s ease';
