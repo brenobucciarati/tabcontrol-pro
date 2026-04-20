@@ -210,7 +210,7 @@
             img.style.opacity = '0.5';
             
             const imgPath = foto.caminho || foto;
-            img.src = `/static/uploads/${imgPath}`;
+            img.src = imgPath.startsWith('http') ? imgPath : `/static/uploads/${imgPath}`;
             img.alt = foto.categoria || 'Foto';
             
             img.onload = () => {
@@ -378,7 +378,7 @@
                                 
                                 fotosHtml += `
                                     <div class="foto-item-historico" onclick="abrirCarrosselHistorico(${JSON.stringify(fotosRetirada).replace(/"/g, '&quot;')}, ${fotosRetirada.indexOf(foto)})" title="Retirada: ${categoriaNome}">
-                                        <img src="/static/uploads/${foto.caminho}" alt="Foto Retirada" class="foto-thumbnail-historico">
+                                        <img src="${foto.caminho && foto.caminho.startsWith('http') ? foto.caminho : '/static/uploads/' + foto.caminho}" alt="Foto Retirada" class="foto-thumbnail-historico">
                                         <span class="foto-label">${iconeCategoria}</span>
                                     </div>
                                 `;
@@ -415,7 +415,7 @@
                                 
                                 fotosHtml += `
                                     <div class="foto-item-historico" onclick="abrirCarrosselHistorico(${JSON.stringify(fotosDevolucao).replace(/"/g, '&quot;')}, ${fotosDevolucao.indexOf(foto)})" title="Devolução: ${categoriaNome}">
-                                        <img src="/static/uploads/${foto.caminho}" alt="Foto Devolução" class="foto-thumbnail-historico">
+                                        <img src="${foto.caminho && foto.caminho.startsWith('http') ? foto.caminho : '/static/uploads/' + foto.caminho}" alt="Foto Devolução" class="foto-thumbnail-historico">
                                         <span class="foto-label">${iconeCategoria}</span>
                                     </div>
                                 `;

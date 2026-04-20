@@ -459,7 +459,7 @@ async function abrirModalDetalhes(tabletId) {
                                     ${temFotos ? 
                                         h.fotos.map(foto => `
                                             <div class="foto-item" onclick="event.stopPropagation(); abrirCarrosselHistorico(${JSON.stringify(h.fotos).replace(/"/g, '&quot;')}, ${h.fotos.indexOf(foto)})" title="${foto.categoria || 'Foto'}">
-                                                <img src="/static/uploads/${foto.caminho}" alt="Foto" class="foto-thumbnail">
+                                              <img src="${foto.caminho && foto.caminho.startsWith('http') ? foto.caminho : '/static/uploads/' + foto.caminho}" alt="Foto" class="foto-thumbnail">
                                                 <span class="foto-label">${foto.categoria || 'Geral'}</span>
                                             </div>
                                         `).join('') 
