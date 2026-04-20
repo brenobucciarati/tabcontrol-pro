@@ -11,6 +11,20 @@ from io import BytesIO
 from PIL import Image
 import secrets
 
+# ==================== CONFIGURAÇÃO CLOUDINARY ====================
+USE_CLOUDINARY = True  # ← Mude para True para usar Cloudinary
+
+if USE_CLOUDINARY:
+    import cloudinary
+    import cloudinary.uploader
+    import cloudinary.api
+    cloudinary.config(
+        cloud_name="SEU_CLOUD_NAME",      # ← SUBSTITUA PELO SEU
+        api_key="SEU_API_KEY",            # ← SUBSTITUA PELO SEU
+        api_secret="SEU_API_SECRET"       # ← SUBSTITUA PELO SEU
+    )
+
+
 # Importações para autenticação
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
@@ -161,6 +175,36 @@ def salvar_foto_organizada(file, tipo, tablet_numero=None):
     
     print(f"📁 Foto salva em: {caminho_relativo}")
     return caminho_relativo
+
+# ==================== FUNÇÃO CLOUDINARY ====================
+
+def salvar_foto_cloudinary(file, tipo, tablet_numero=None):
+    """Faz upload da foto para o Cloudinary"""
+    agora = datetime.now()
+    data_pasta = agora.strftime('%Y-%m-%d')
+    hora_arquivo = agora.strftime('%H%M%S')
+    
+    if not tablet_numero:
+        tablet_numero = 'geral'
+    else:
+        tablet_numero = str(tablet_numero).zfill(2)
+    
+    folder_path = f"tabcontrol/tablet_{tablet_numero}/{data_pasta}/{tipo}"
+    public_id = f"{tipo}_{hora_arquivo}"
+    
+    try:
+        result = cloudinary.uploader.upload(
+            file,
+            folder=folder_path,
+            public_id=public_id,
+            overwrite=False,
+            resource_type="image"
+        )
+        print(f"📁 Foto enviada para Cloudinary: {result['secure_url']}")
+        return result['secure_url']
+    except Exception as e:
+        print(f"❌ Erro no Cloudinary, salvando localmente: {e}")
+        return salvar_foto_organizada(file, tipo, tablet_numero)
 
 
 # ==================== INICIALIZAÇÃO ====================
@@ -447,11 +491,14 @@ def upload_foto_base64():
             filename=f"mobile_upload.jpg"
         )
         
-        caminho_relativo = salvar_foto_organizada(file, tipo, tablet_numero)
+        if USE_CLOUDINARY:
+            caminho = salvar_foto_cloudinary(file, tipo, tablet_numero)
+        else:
+            caminho = salvar_foto_organizada(file, tipo, tablet_numero)
         
         return jsonify({
             'success': True,
-            'path': caminho_relativo
+            'path': caminho
         })
         
     except Exception as e:
