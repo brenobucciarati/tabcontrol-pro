@@ -19,9 +19,9 @@ if USE_CLOUDINARY:
     import cloudinary.uploader
     import cloudinary.api
     cloudinary.config(
-        cloud_name="SEU_CLOUD_NAME",      # ← SUBSTITUA PELO SEU
-        api_key="SEU_API_KEY",            # ← SUBSTITUA PELO SEU
-        api_secret="SEU_API_SECRET"       # ← SUBSTITUA PELO SEU
+        cloud_name="dkmlfnly5",      # ← SUBSTITUA PELO SEU
+        api_key="238534511813591",            # ← SUBSTITUA PELO SEU
+        api_secret="lpq9hsdm4U3DA_OoMclhHBkFkFc"       # ← SUBSTITUA PELO SEU
     )
 
 
@@ -528,11 +528,14 @@ def upload_foto():
             if tablet:
                 tablet_numero = tablet.numero
         
-        caminho_relativo = salvar_foto_organizada(file, tipo, tablet_numero)
+        if USE_CLOUDINARY:
+            caminho = salvar_foto_cloudinary(file, tipo, tablet_numero)
+        else:
+            caminho = salvar_foto_organizada(file, tipo, tablet_numero)
         
         return jsonify({
             'success': True,
-            'path': caminho_relativo
+            'path': caminho
         })
         
     except Exception as e:
